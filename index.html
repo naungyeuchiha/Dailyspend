@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Spend</title>
+<meta name="description" content="Personal expense, budget, loan and bill tracker synced to your Google Sheet.">
+<meta name="theme-color" content="#eef2f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daily Spend">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="login" class="login" hidden><div class="card">
+  <img class="brand" src="icons/icon-192.png" alt="">
+  <h2 style="font-size:1.8rem;margin:0">Daily Spend</h2>
+  <p class="mute">Sign in with Google. Your data lives in a private sheet in your own Drive and syncs on every device.</p>
+  <div id="cidBox"><label for="cid">Google OAuth Client ID</label><input id="cid" placeholder="123-abc.apps.googleusercontent.com"></div>
+  <button class="btn" id="signin">Sign in with Google</button>
+</div></div>
+
+<div id="app" hidden>
+<header><b>Daily Spend</b><button id="sync" class="chip busy">Syncing…</button></header>
+<main>
+ <section id="p-home" class="page" hidden>
+  <div class="card hero" id="daily"></div>
+  <div class="card" id="billsCard" hidden><h3>Bills due this month</h3><div id="billsDue"></div></div>
+  <div class="grid">
+   <div class="card"><h3>Add transaction</h3>
+    <div class="seg" id="seg"><button class="on" data-t="expense">Expense</button><button data-t="income">Income</button></div>
+    <div class="two"><div><label for="amt">Amount</label><input id="amt" type="number" step="0.01" min="0" inputmode="decimal"></div>
+    <div id="catWrap"><label for="cat">Category</label><select id="cat"></select></div></div>
+    <label for="note">Note</label><input id="note" maxlength="60" placeholder="Optional">
+    <label for="dt">Date</label><input id="dt" type="date">
+    <button class="btn" id="add">Add</button></div>
+   <div>
+    <div class="card"><h3>New loan (money received)</h3>
+     <label for="ln">Loan name</label><input id="ln" maxlength="40" placeholder="e.g. Car loan">
+     <label for="la">Amount received</label><input id="la" type="number" step="0.01" min="0" inputmode="decimal">
+     <button class="btn" id="addLoan">Create loan</button></div>
+    <div class="card"><h3>Loan payback</h3>
+     <label for="pl">Loan</label><select id="pl"></select>
+     <label for="pa">Payment</label><input id="pa" type="number" step="0.01" min="0" inputmode="decimal">
+     <button class="btn alt" id="pay">Pay &amp; record as expense</button></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="p-dash" class="page" hidden>
+  <div class="row"><h2>Dashboard</h2><input id="dm" type="month" style="width:auto" aria-label="Month"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="dgrid">
+   <div class="card"><h3>Last 6 months</h3><div class="cv"><canvas id="c1"></canvas></div></div>
+   <div class="card"><h3>Spending by category</h3><div class="cv"><canvas id="c2"></canvas></div></div>
+  </div>
+  <div class="dgrid">
+   <div class="card"><h3>Budget report</h3><div id="budRep"></div></div>
+   <div class="card"><h3>Loan report</h3><div id="loanRep"></div></div>
+  </div>
+  <div class="card"><h3>Recurring bills (this month)</h3><div id="billRep"></div></div>
+ </section>
+
+ <section id="p-tx" class="page" hidden>
+  <h2>Records</h2>
+  <div class="seg tabs" id="txTabs"><button class="on" data-t="tx">Transactions</button><button data-t="loans">Loans</button><button data-t="bills">Bills</button></div>
+  <div class="two" id="txFilters"><input id="tm" type="month" aria-label="Month"><select id="tf" aria-label="Type"><option value="">All types</option><option value="expense">Expenses</option><option value="income">Income</option><option value="loan_in">Loans received</option></select></div>
+  <button class="btn" id="addBill" hidden>+ Add recurring bill</button>
+  <div class="card" style="margin-top:12px" id="txList"></div>
+ </section>
+
+ <section id="p-set" class="page" hidden>
+  <div class="row"><h2>Settings</h2><button class="icon-btn" id="theme" aria-label="Switch light or dark theme"></button></div>
+  <div class="card"><div class="row" style="justify-content:flex-start"><img id="av" class="avatar" alt=""><div><b id="un"></b><div class="mute" id="ue"></div></div></div></div>
+  <div class="card"><h3>Install on your phone</h3>
+   <p class="mute" id="iosHint" hidden>On iPhone: tap Share, then “Add to Home Screen”.</p>
+   <button class="btn" id="install" hidden>Install app</button>
+   <p class="mute" id="installNote">Works offline and syncs when you are back online.</p></div>
+  <div class="card"><div class="two"><div><label for="cur">Currency symbol</label><input id="cur" maxlength="3"></div>
+   <div><label for="ball">Monthly budget (all)</label><input id="ball" type="number" min="0" inputmode="decimal" placeholder="0 = none"></div></div></div>
+  <div class="card"><h3>Categories &amp; monthly budgets</h3><div id="cats"></div>
+   <div class="two"><input id="ncat" placeholder="New category" maxlength="24" aria-label="New category"><button class="btn" id="addCat" style="margin:0">Add category</button></div></div>
+  <button class="btn ghost" id="resync">Sync now</button>
+  <button class="btn ghost" id="out">Sign out</button>
+ </section>
+</main>
+<nav id="nav"><i class="pill"></i><button data-p="home"><span>🏠</span>Home</button><button data-p="dash"><span>📊</span>Dashboard</button><button data-p="tx"><span>🧾</span>Records</button><button data-p="set"><span>⚙️</span>Settings</button></nav>
+<div class="sheet" id="sheet" hidden><div class="scrim"></div><div class="panel" id="sheetBody"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/app.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="gisReady()"></script>
+</body>
+</html>
